@@ -1,0 +1,302 @@
+<title>%%TITLE_TEXT%%</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&display=swap">
+<style>
+%%LEAFLET_CSS%%
+:root{
+  --bg:#f5f1ea; --surface:#fffdf8; --sunk:#efe9df; --ink:#231f1b; --muted:#6c645a; --line:#e2dacd;
+  --food:#a86d12; --food-soft:#f6ead3; --alt:#56688a; --alt-soft:#e3e8f1;
+  --warn:#8a4b00; --warn-soft:#fdf0dc; --link:#1f5f8f;
+  %%DAY_TOKENS_LIGHT%%
+  --tile-filter:none; --shadow:0 1px 2px rgba(60,40,20,.06),0 4px 16px rgba(60,40,20,.06);
+  --serif:"Noto Serif SC","Songti SC","STSong",serif;
+  --sans:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151311; --surface:#1d1b18; --sunk:#252220; --ink:#ede7dd; --muted:#a69d91; --line:#36312b;
+  --food:#e2a748; --food-soft:#352a17; --alt:#94a6c8; --alt-soft:#232a38;
+  --warn:#f0b35e; --warn-soft:#33261a; --link:#7fb6e0;
+  %%DAY_TOKENS_DARK%%
+  --tile-filter:invert(.9) hue-rotate(180deg) saturate(.55) brightness(.9) contrast(.95);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151311; --surface:#1d1b18; --sunk:#252220; --ink:#ede7dd; --muted:#a69d91; --line:#36312b;
+  --food:#e2a748; --food-soft:#352a17; --alt:#94a6c8; --alt-soft:#232a38;
+  --warn:#f0b35e; --warn-soft:#33261a; --link:#7fb6e0;
+  %%DAY_TOKENS_DARK%%
+  --tile-filter:invert(.9) hue-rotate(180deg) saturate(.55) brightness(.9) contrast(.95);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25); color-scheme:dark}
+%%DAY_RULES%%
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+body{background:var(--bg);color:var(--ink);font:15px/1.7 var(--sans);padding-inline:16px;padding-block:0 64px}
+a{color:var(--link)}
+.wrap{max-width:900px;margin:0 auto}
+h1,h2,h3{font-family:var(--serif);text-wrap:balance;line-height:1.3;margin:0}
+.hero{padding-block:40px 20px;display:grid;gap:14px}
+.kicker{font-size:12px;letter-spacing:.18em;color:var(--muted)}
+.hero h1{font-size:clamp(28px,6vw,44px);font-weight:900}
+.hero h1 em{font-style:normal;color:var(--d1)}
+.one{font-size:16px;max-width:62ch;margin:0}
+.todo{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:10px;padding:12px 16px}
+.todo h3{font:700 14px/1.4 var(--sans);color:var(--warn);margin:0 0 6px;letter-spacing:.05em}
+.todo ol{margin:0;padding-left:20px;display:grid;gap:3px;font-size:14px}
+.trip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tc{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--ink);border-radius:8px;padding:10px 14px;display:grid;gap:2px;min-width:0}
+.tc b{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.08em}
+.tc strong{font:900 22px/1.3 var(--serif);font-variant-numeric:tabular-nums}
+.tc span{font-size:12.5px;color:var(--muted);line-height:1.6}
+nav.jump{position:sticky;top:env(safe-area-inset-top,0px);z-index:1000;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);margin-inline:-16px;padding:8px 16px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+nav.jump a{display:inline-block;color:var(--ink);text-decoration:none;font-size:14px;padding:4px 10px;border-radius:99px}
+nav.jump a:hover{background:var(--sunk)}
+section{padding-block:28px 8px}
+.sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sec-h h2{font-size:24px}
+.sec-h p{margin:0;color:var(--muted);font-size:13px}
+.map-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+#map{height:clamp(380px,64vh,580px);background:var(--sunk)}
+.leaflet-tile-pane{filter:var(--tile-filter)}
+.leaflet-container{font:13px/1.5 var(--sans);background:var(--sunk)}
+.map-bar{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line)}
+.fbtn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:4px 12px;cursor:pointer}
+.fbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 12px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.mk{display:grid;place-items:center;border-radius:50%;color:#fff;font:700 12px/1 var(--sans);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.mk.d0{background:#3a3a3a}.mk.sq{border-radius:5px}
+.mk.food{background:var(--food);font-size:11px}
+.mk.alt{background:var(--surface);color:var(--alt);border-color:var(--alt);font-size:11px}
+.mk.metro{background:var(--surface);color:var(--muted);border-color:var(--muted);font-size:10px}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
+.leaflet-popup-content{margin:10px 12px;min-width:150px}
+.pop b{font-size:14px;display:block}.pop span{color:var(--muted);font-size:12px;display:block;margin-bottom:4px}
+.map-note{font-size:12px;color:var(--muted);padding:0 12px 10px}
+.day-h{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+.day-num{font:900 13px/1 var(--serif);letter-spacing:.1em;color:#fff;background:var(--dc);padding:10px 8px;border-radius:6px;writing-mode:vertical-rl;flex:none}
+.day-h h2{font-size:22px}
+.weather{margin:4px 0 0;color:var(--muted);font-size:13px}
+.timeline{list-style:none;margin:0;padding:0}
+.seg{display:grid;grid-template-columns:92px 1fr;gap:14px;padding-block:14px;border-top:1px dashed var(--line)}
+.seg:first-child{border-top:0}
+.seg-time{font:600 14px/1.4 var(--sans);font-variant-numeric:tabular-nums;color:var(--dc);padding-top:3px}
+.seg-body{min-width:0}
+.seg h4{font:700 17px/1.4 var(--serif);margin:0}
+.place{margin:2px 0 8px;color:var(--muted);font-size:13px}
+.row{display:grid;grid-template-columns:48px 1fr;gap:8px;margin:4px 0;font-size:14px}
+.lab{font-size:12px;color:var(--muted);padding-top:2px;letter-spacing:.05em}
+.lab-book{color:var(--warn);font-weight:700}
+.tips{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+.planb{margin-top:10px;border:1px dashed var(--dc);background:var(--dcs);border-radius:8px;padding:8px 12px;display:grid;gap:6px}
+.planb-h{font-size:11px;letter-spacing:.2em;color:var(--dc);font-weight:700}
+.pb{display:grid;gap:2px;font-size:13.5px}
+.pb-if{font-weight:700}.pb-if::after{content:" →";color:var(--dc)}
+.seg-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:3px 10px;text-decoration:none;cursor:pointer}
+.chip-map{border-color:var(--dc);color:var(--dc)}
+.chip-nav{color:var(--muted)}
+.rules{margin:0;display:grid;grid-template-columns:130px 1fr;border-top:1px solid var(--line)}
+.rules dt,.rules dd{margin:0;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rules dt{font-weight:700;padding-right:14px}
+.fa{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.fa header{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}
+.fa h3{font-size:18px}
+.meal{font-size:12px;background:var(--food-soft);color:var(--food);padding:2px 8px;border-radius:4px;font-weight:700}
+.fo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.fo{border-top:2px solid var(--food);background:var(--bg);border-radius:0 0 6px 6px;padding:10px 12px;min-width:0}
+.fo-name{font-weight:700;font-size:15px}.fo-br{font-weight:400;color:var(--muted);font-size:12px}
+.fo-meta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12.5px;margin:4px 0}
+.must{color:var(--food);font-weight:600}.pp{color:var(--muted);font-variant-numeric:tabular-nums}
+.fo p{margin:4px 0 0;font-size:13px}.fo-q,.fo-c{color:var(--muted)}
+.fo b{font-weight:600;color:var(--ink);margin-right:4px}
+.must-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.must-list li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:grid;font-size:13px}
+.must-list b{font-family:var(--serif);font-size:15px}.must-list em{font-style:normal;color:var(--muted);font-size:12px}
+.bk{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.bk li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
+.bk-item{font:700 16px/1.4 var(--serif)}.bk-ch{color:var(--muted);font-size:13px}
+.bk p{margin:6px 0 0}
+.bk .now{background:var(--warn-soft);padding:6px 10px;border-radius:6px}.bk .now b{color:var(--warn)}
+.cont{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.cont li{display:grid;grid-template-columns:minmax(120px,30%) 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td{border-bottom:1px solid var(--line);padding:6px 4px;vertical-align:top}
+td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pack{padding-left:18px;margin:0;font-size:14px}
+.src{font-size:13px;padding-left:18px;columns:2;column-gap:28px}.src li{break-inside:avoid;margin-bottom:4px}
+footer{color:var(--muted);font-size:12px;padding-top:24px;border-top:1px solid var(--line);margin-top:24px}
+@media (max-width:640px){
+  .seg{grid-template-columns:1fr;gap:4px}.seg-time{padding-top:0}
+  .rules{grid-template-columns:1fr}.rules dt{border-bottom:0;padding-bottom:0}.rules dd{padding-top:2px}
+  .cont li{grid-template-columns:1fr;gap:2px}.two{grid-template-columns:1fr}.src{columns:1}
+}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <div class="kicker">%%KICKER%%</div>
+  <h1>%%TITLE%%</h1>
+  <p class="one">%%ONE_LINE%%</p>
+  %%TODO%%
+  <div class="trip">%%TRIP_CARDS%%</div>
+</header>
+
+<nav class="jump" aria-label="跳转"><a href="#map-sec">地图</a><a href="#rules">必读</a>%%NAV_DAYS%%<a href="#food">美食</a><a href="#must">必吃</a><a href="#book">预约</a><a href="#plan-b">应急</a><a href="#misc">预算/带什么</a></nav>
+
+<section id="map-sec">
+  <div class="sec-h"><h2>路线地图</h2><p>高德底图 · 数字是当天景点顺序，线是一天的走法 · 点标记看详情和导航</p></div>
+  <div class="map-card">
+    <div class="map-bar" role="group" aria-label="地图筛选"><button class="fbtn" data-f="all" aria-pressed="true">全部</button>%%FILTER_DAYS%%<button class="fbtn" data-f="food" aria-pressed="false">美食</button><button class="fbtn" data-f="alt" aria-pressed="false">替代方案</button></div>
+    <div id="map" role="region" aria-label="行程地图"></div>
+    <div class="legend">%%LEGEND_DAYS%%<span><i style="background:var(--food)"></i>吃</span><span><i style="border:2px solid var(--alt);background:var(--surface)"></i>替代方案</span><span><i style="background:#3a3a3a;border-radius:2px"></i>酒店 / 车站</span><span><i style="border:2px solid var(--muted);background:var(--surface)"></i>地铁站</span></div>
+  </div>
+  <p class="map-note">连线只表示先后顺序，不是实际道路；具体怎么走看下面每段的“怎么去”，点“高德导航”直接跳 App。</p>
+</section>
+
+<section id="rules">
+  <div class="sec-h"><h2>出发前必读</h2><p>新规、硬时间、车站</p></div>
+  <dl class="rules">%%RULES%%</dl>
+</section>
+
+%%DAYS%%
+
+<section id="food">
+  <div class="sec-h"><h2>每一餐吃什么</h2><p>每个区域都有好几家，按排队情况现场挑</p></div>
+  %%FOOD%%
+</section>
+
+<section id="must">
+  <div class="sec-h"><h2>必吃清单</h2><p>顺路就吃，不用专程</p></div>
+  <ul class="must-list">%%MUST%%</ul>
+</section>
+
+<section id="book">
+  <div class="sec-h"><h2>预约与购票</h2><p>黄色那行是要做的事</p></div>
+  <ul class="bk">%%BOOKINGS%%</ul>
+</section>
+
+<section id="plan-b">
+  <div class="sec-h"><h2>应急预案</h2><p>全局性的意外怎么处理</p></div>
+  <ul class="cont">%%CONTS%%</ul>
+</section>
+
+<section id="misc">
+  <div class="two">
+    <div><div class="sec-h"><h2>预算</h2></div><table>%%BUDGET%%</table></div>
+    <div><div class="sec-h"><h2>带什么</h2></div><ul class="pack">%%PACKING%%</ul></div>
+  </div>
+</section>
+
+<section id="src">
+  <div class="sec-h"><h2>信息来源</h2><p>小红书、知乎、攻略和官方公告</p></div>
+  <ol class="src">%%SOURCES%%</ol>
+</section>
+
+<footer>底图 © 高德地图。景点开放和预约以官方当天公告为准；节假日人流变化快，现场灵活切换替代方案。</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const MAP = %%MAP_DATA%%;
+(function(){
+  const el = document.getElementById('map');
+  if (typeof L === 'undefined') { el.innerHTML = '<p style="padding:16px">地图脚本没加载出来，刷新一下试试。</p>'; return; }
+  const INDEX = {}; for (const z in MAP.index) INDEX[z] = new Set(MAP.index[z]);
+  const chunks = {};
+  function chunk(z, cx, cy){
+    const k = z + '/' + cx + '_' + cy;
+    if (!(k in chunks)) chunks[k] = (INDEX[z] && INDEX[z].has(cx + '_' + cy))
+      ? fetch('tiles/' + k + '.json').then(r => r.ok ? r.json() : {}).catch(() => { delete chunks[k]; return {}; })
+      : Promise.resolve({});
+    return chunks[k];
+  }
+  const imgs = {};
+  function img(z, x, y){
+    const k = z + '/' + x + '/' + y;
+    if (!(k in imgs)) imgs[k] = chunk(z, x >> 2, y >> 2).then(c => {
+      const b = c[x + '_' + y]; if (!b) return null;
+      return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = 'data:image/png;base64,' + b; });
+    });
+    return imgs[k];
+  }
+  // 自定义瓦片层：缺某一级时裁剪上级瓦片放大兜底。必须设 minZoom/maxZoom，否则各级 zIndex 为空，旧的低清层会盖住新层。
+  const Amap = L.GridLayer.extend({
+    createTile(c, done){
+      const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+      const ctx = cv.getContext('2d');
+      (async () => {
+        for (let k = 0; k <= 6 && c.z - k >= 11; k++) {
+          const x = c.x >> k, y = c.y >> k, im = await img(c.z - k, x, y);
+          if (!im) continue;
+          const s = 256 >> k;
+          ctx.drawImage(im, (c.x - (x << k)) * s, (c.y - (y << k)) * s, s, s, 0, 0, 256, 256);
+          break;
+        }
+        done(null, cv);
+      })().catch(() => done(null, cv));
+      return cv;
+    }
+  });
+  const pts = MAP.points;
+  const all = L.latLngBounds(pts.map(p => [p.lat, p.lon]));
+  const map = L.map(el, { minZoom: 11, maxZoom: 17, maxBounds: all.pad(0.6), zoomSnap: 0.5 });
+  map.attributionControl.setPrefix(false).addAttribution('© 高德地图');
+  new Amap({ bounds: all.pad(0.8), minZoom: 11, maxZoom: 17 }).addTo(map);
+
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const KIND_NAME = { hotel: '酒店', station: '车站', sight: '景点', night: '夜游', food: '美食', alt: '替代方案' };
+  const groups = { 0: L.layerGroup(), food: L.layerGroup(), alt: L.layerGroup() };
+  for (const d of MAP.days) groups[d] = L.layerGroup();
+  const num = {};
+  for (const d of MAP.days) pts.filter(p => p.day === d && p.order > 0 && (p.kind === 'sight' || p.kind === 'night'))
+    .sort((a, b) => a.order - b.order).forEach((p, i) => num[p.id] = i + 1);
+  const byId = {};
+  for (const p of pts) {
+    let cls, label, size = 26, grp;
+    if (p.kind === 'hotel' || (p.kind === 'station' && p.major)) { cls = 'd0 sq'; label = p.kind === 'hotel' ? '住' : '站'; grp = groups[0]; }
+    else if (p.kind === 'station') { cls = 'metro'; label = 'M'; size = 18; grp = groups[0]; }
+    else if (p.kind === 'food') { cls = 'food'; label = '食'; size = 22; grp = groups.food; }
+    else if (p.kind === 'alt' || !p.order) { cls = 'alt'; label = '备'; size = 22; grp = groups.alt; }
+    else { cls = 'd' + p.day; label = num[p.id] || '·'; grp = groups[p.day] || groups[0]; }
+    const icon = L.divIcon({ className: '', html: `<div class="mk ${cls}" style="width:${size}px;height:${size}px">${label}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+    const nav = `https://uri.amap.com/marker?position=${p.lon.toFixed(6)},${p.lat.toFixed(6)}&name=${encodeURIComponent(p.name)}&coordinate=gaode&callnative=1`;
+    const m = L.marker([p.lat, p.lon], { icon, title: p.name, zIndexOffset: p.kind === 'alt' ? -100 : (p.kind === 'food' ? 0 : 200) })
+      .bindPopup(`<div class="pop"><b>${p.name}</b><span>${p.day ? MAP.dayLabels[p.day] + ' · ' : ''}${KIND_NAME[p.kind] || ''}${p.approx ? ' · 位置为片区大致位置' : ''}</span><a href="${nav}" target="_blank" rel="noopener">高德导航 ↗</a></div>`);
+    m.addTo(grp); byId[p.id] = m;
+  }
+  const lines = {};
+  for (const d of MAP.days) {
+    const seq = (MAP.routes[d] || []).map(id => pts.find(p => p.id === id)).filter(Boolean);
+    lines[d] = L.polyline(seq.map(p => [p.lat, p.lon]), { color: css('--d' + d), weight: 3, opacity: .85, dashArray: '6 7' }).addTo(groups[d]);
+  }
+  Object.values(groups).forEach(g => g.addTo(map));
+  map.fitBounds(L.featureGroup(Object.values(byId).filter(m => !groups.alt.hasLayer(m))).getBounds().pad(0.08));
+
+  const show = { all: Object.keys(groups) , food: ['food', '0'], alt: ['alt', '0', ...MAP.days.map(String)] };
+  for (const d of MAP.days) show[d] = [String(d), '0'];
+  document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.fbtn').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const on = show[b.dataset.f];
+    for (const k in groups) { const want = on.includes(k); if (want && !map.hasLayer(groups[k])) groups[k].addTo(map); if (!want && map.hasLayer(groups[k])) map.removeLayer(groups[k]); }
+    const vis = L.featureGroup(Object.values(byId).filter(m => on.some(k => groups[k].hasLayer(m))));
+    if (vis.getLayers().length) map.fitBounds(vis.getBounds().pad(0.1));
+  }));
+  document.querySelectorAll('[data-fly]').forEach(b => b.addEventListener('click', () => {
+    const ms = b.dataset.fly.split(',').map(i => byId[i]).filter(Boolean);
+    if (!ms.length) return;
+    ms.forEach(m => { for (const k in groups) if (groups[k].hasLayer(m) && !map.hasLayer(groups[k])) groups[k].addTo(map); });
+    document.getElementById('map-sec').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      if (ms.length === 1) map.flyTo(ms[0].getLatLng(), 16, { duration: .8 });
+      else map.flyToBounds(L.featureGroup(ms).getBounds().pad(0.3), { maxZoom: 16, duration: .8 });
+      ms[0].openPopup();
+    }, 350);
+  }));
+  const recolor = () => { for (const d of MAP.days) lines[d].setStyle({ color: css('--d' + d) }); };
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener && mq.addEventListener('change', recolor);
+  new MutationObserver(recolor).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  // OFFLINE_HOOK
+})();
+</script>
